@@ -3,53 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HiddenPixel | Secure Steganography</title>
+    <title>StegaVault | Secure File Courier</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>&lt;HiddenPixel <span style="font-size:0.6em; color:#fff;">v2.0</span> /&gt;</h1>
-    <div class="subtitle">LSB Steganography + XOR Encryption</div>
+    <nav>
+        <div class="logo">StegaVault <span class="badge">PRO</span></div>
+    </nav>
 
     <div class="container">
         
-        <div class="panel">
-            <h2>Encrypt Data</h2>
-            <div class="form-group">
-                <label>1. Upload Source Image</label>
-                <input type="file" id="upload-encode" accept="image/*">
-                <img id="preview-encode" alt="Preview">
+        <div class="card">
+            <div class="card-header">
+                <h2>1. Hide a File</h2>
+                <span class="step-desc">Embed any file inside an image</span>
             </div>
             
-            <div class="form-group">
-                <label>2. Secret Message</label>
-                <textarea id="secret-text" placeholder="Enter text to hide..."></textarea>
+            <div class="drop-zone" id="drop-cover">
+                <p>Drag & Drop <b>Cover Image</b> (PNG/JPG)</p>
+                <input type="file" id="upload-cover" accept="image/*" hidden>
+                <button class="btn-outline" onclick="document.getElementById('upload-cover').click()">Select Image</button>
+            </div>
+            <img id="preview-cover" class="preview-img">
+
+            <div class="separator">⬇ embeds ⬇</div>
+
+            <div class="drop-zone secondary" id="drop-secret">
+                <p>Drag & Drop <b>Secret File</b> (PDF, Zip, Txt)</p>
+                <input type="file" id="upload-secret" hidden>
+                <button class="btn-outline" onclick="document.getElementById('upload-secret').click()">Select File</button>
+            </div>
+            <div id="file-info" class="info-tag"></div>
+
+            <div class="input-group">
+                <label>Encryption Key</label>
+                <input type="password" id="pass-encode" placeholder="Enter password (Recommended)">
             </div>
 
-            <div class="form-group">
-                <label>3. Encryption Password (Optional)</label>
-                <input type="password" id="pass-encode" placeholder="Create a password">
-            </div>
-
-            <button id="encode-btn">Hide Message & Download</button>
+            <button id="encode-btn" class="btn-primary" disabled>Process & Download Image</button>
+            <div id="capacity-bar"><div id="capacity-fill"></div></div>
+            <p id="capacity-text">0% Capacity Used</p>
         </div>
 
-        <div class="panel">
-            <h2>Decrypt Data</h2>
-            <div class="form-group">
-                <label>1. Upload Encoded Image</label>
-                <input type="file" id="upload-decode" accept="image/png">
-                <p class="note">*Must be the PNG file you downloaded</p>
+        <div class="card">
+            <div class="card-header">
+                <h2>2. Extract a File</h2>
+                <span class="step-desc">Retrieve hidden files from image</span>
             </div>
 
-            <div class="form-group">
-                <label>2. Decryption Password</label>
-                <input type="password" id="pass-decode" placeholder="Enter password to unlock">
+            <div class="drop-zone" id="drop-decode">
+                <p>Drag & Drop <b>StegaVault Image</b></p>
+                <input type="file" id="upload-decode" accept="image/png" hidden>
+                <button class="btn-outline" onclick="document.getElementById('upload-decode').click()">Select Image</button>
+            </div>
+            <img id="preview-decode" class="preview-img">
+
+            <div class="input-group">
+                <label>Decryption Key</label>
+                <input type="password" id="pass-decode" placeholder="Enter password">
             </div>
 
-            <button id="decode-btn">Reveal Message</button>
+            <button id="decode-btn" class="btn-primary" disabled>Extract Hidden File</button>
             
-            <div id="decoded-result" class="result-box"></div>
+            <div id="result-area" class="result-box">
+                <p>File Found: <b id="found-filename">...</b></p>
+                <button id="download-secret-btn" class="btn-success">Download File</button>
+            </div>
         </div>
 
     </div>
