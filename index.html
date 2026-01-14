@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HiddenPixel | Image Steganography</title>
+    <title>HiddenPixel | Secure Steganography</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>&lt;HiddenPixel /&gt;</h1>
-    <div class="subtitle">LSB Steganography Tool by Yash Patil</div>
+    <h1>&lt;HiddenPixel <span style="font-size:0.6em; color:#fff;">v2.0</span> /&gt;</h1>
+    <div class="subtitle">LSB Steganography + XOR Encryption</div>
 
     <div class="container">
         
@@ -20,10 +20,17 @@
                 <input type="file" id="upload-encode" accept="image/*">
                 <img id="preview-encode" alt="Preview">
             </div>
+            
             <div class="form-group">
                 <label>2. Secret Message</label>
                 <textarea id="secret-text" placeholder="Enter text to hide..."></textarea>
             </div>
+
+            <div class="form-group">
+                <label>3. Encryption Password (Optional)</label>
+                <input type="password" id="pass-encode" placeholder="Create a password">
+            </div>
+
             <button id="encode-btn">Hide Message & Download</button>
         </div>
 
@@ -34,6 +41,12 @@
                 <input type="file" id="upload-decode" accept="image/png">
                 <p class="note">*Must be the PNG file you downloaded</p>
             </div>
+
+            <div class="form-group">
+                <label>2. Decryption Password</label>
+                <input type="password" id="pass-decode" placeholder="Enter password to unlock">
+            </div>
+
             <button id="decode-btn">Reveal Message</button>
             
             <div id="decoded-result" class="result-box"></div>
@@ -42,7 +55,6 @@
     </div>
 
     <canvas id="canvas"></canvas>
-
     <script src="script.js"></script>
 </body>
 </html>
