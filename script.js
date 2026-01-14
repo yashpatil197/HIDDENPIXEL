@@ -1,132 +1,162 @@
-:root {
-    --primary: #00ff88;
-    --bg: #0f172a;
-    --panel: #1e293b;
-    --text: #e2e8f0;
-    --border: #334155;
+// Global Variables
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// --- EVENT LISTENERS ---
+document.getElementById('upload-encode').addEventListener('change', (e) => previewImage(e.target, 'preview-encode'));
+document.getElementById('encode-btn').addEventListener('click', encodeMessage);
+document.getElementById('decode-btn').addEventListener('click', decodeMessage);
+
+// --- HELPER FUNCTIONS ---
+
+function previewImage(input, imgId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(imgId);
+            img.src = e.target.result;
+            img.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+// THE NEW LOGIC: XOR ENCRYPTION
+// This mimics C-style bitwise manipulation
+function xorCipher(text, password) {
+    // If no password provided, return raw text
+    if (!password || password.length === 0) return text;
+
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+        // Get ASCII codes
+        const charCode = text.charCodeAt(i);
+        const passCode = password.charCodeAt(i % password.length); // Loop password
+        
+        // Bitwise XOR (^) to scramble/unscramble
+        const xorValue = charCode ^ passCode;
+        
+        result += String.fromCharCode(xorValue);
+    }
+    return result;
 }
 
-h1 {
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-family: 'Courier New', monospace;
+// --- ENCODING ---
+function encodeMessage() {
+    const fileInput = document.getElementById('upload-encode');
+    const message = document.getElementById('secret-text').value;
+    const password = document.getElementById('pass-encode').value; // Get Password
+
+    if (!fileInput.files[0] || !message) {
+        alert("Please select an image and enter text.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+
+            // 1. ENCRYPT MESSAGE BEFORE HIDING
+            // Note: We encrypt the text, THEN add the terminator ($) so we can always find the end.
+            const encryptedText = xorCipher(message, password);
+            const fullMessage = encryptedText + "$"; 
+            
+            // Convert to Binary
+            let binaryMessage = "";
+            for (let i = 0; i < fullMessage.length; i++) {
+                let binaryChar = fullMessage[i].charCodeAt(0).toString(2).padStart(8, '0');
+                binaryMessage += binaryChar;
+            }
+
+            if (binaryMessage.length > data.length / 4) {
+                alert("Text is too long for this image size!");
+                return;
+            }
+
+            // Hide Bits
+            let dataIndex = 0;
+            for (let i = 0; i < binaryMessage.length; i++) {
+                let bit = binaryMessage[i]; 
+                data[dataIndex] = (data[dataIndex] & 254) | parseInt(bit);
+                dataIndex++;
+                if ((dataIndex + 1) % 4 === 0) dataIndex++;
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = 'secure-image.png'; // Updated filename
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(fileInput.files[0]);
 }
 
-.subtitle {
-    margin-bottom: 40px;
-    color: #94a3b8;
-    font-size: 0.9rem;
-}
+// --- DECODING ---
+function decodeMessage() {
+    const fileInput = document.getElementById('upload-decode');
+    const password = document.getElementById('pass-decode').value; // Get Password
+    
+    if (!fileInput.files[0]) {
+        alert("Please upload the encoded PNG image.");
+        return;
+    }
 
-.container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 1200px;
-    width: 100%;
-}
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
 
-.panel {
-    background-color: var(--panel);
-    padding: 30px;
-    border-radius: 12px;
-    width: 400px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-}
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
 
-h2 { 
-    border-bottom: 2px solid var(--primary); 
-    padding-bottom: 10px; 
-    display: inline-block; 
-    margin-top: 0;
-}
+            let binaryMessage = "";
+            let extractedText = "";
 
-.form-group { margin-bottom: 20px; }
-label { display: block; margin-bottom: 8px; font-weight: bold; }
+            // Extract Bits
+            for (let i = 0; i < data.length; i++) {
+                if ((i + 1) % 4 === 0) continue;
+                binaryMessage += (data[i] & 1).toString();
+            }
 
-input[type="file"], textarea {
-    width: 100%;
-    padding: 10px;
-    background: #0f172a;
-    border: 1px solid var(--border);
-    color: white;
-    border-radius: 6px;
-    box-sizing: border-box;
-}
+            // Convert Binary to Text
+            for (let i = 0; i < binaryMessage.length; i += 8) {
+                let byte = binaryMessage.slice(i, i + 8);
+                let charCode = parseInt(byte, 2);
+                let char = String.fromCharCode(charCode);
 
-textarea { height: 100px; resize: vertical; }
+                if (char === "$") break; // Stop at terminator
+                
+                extractedText += char;
+                if (extractedText.length > 50000) break;
+            }
 
-button {
-    background-color: var(--primary);
-    color: #000;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-    transition: 0.2s;
-}
+            // 2. DECRYPT MESSAGE AFTER EXTRACTING
+            // If the password is wrong, this will result in garbage text!
+            const finalMessage = xorCipher(extractedText, password);
 
-button:hover { opacity: 0.9; transform: translateY(-2px); }
-
-#preview-encode, #preview-decode {
-    max-width: 100%;
-    margin-top: 15px;
-    border-radius: 6px;
-    display: none;
-    border: 2px solid var(--border);
-}
-
-.result-box {
-    margin-top: 20px;
-    padding: 15px;
-    background: #000;
-    border-radius: 6px;
-    border-left: 4px solid var(--primary);
-    word-wrap: break-word;
-    display: none;
-    font-family: monospace;
-}
-
-.note {
-    font-size: 0.8rem; 
-    color: #aaa;
-    margin-top: 5px;
-}
-
-/* Hidden canvas */
-canvas { display: none; }
-
-/* Add this to your existing style.css */
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    background: #0f172a;
-    border: 1px solid var(--border);
-    color: var(--primary); /* Password dots appear green */
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-family: monospace;
-    letter-spacing: 2px;
-}
-
-input[type="password"]:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 5px rgba(0, 255, 136, 0.2);
+            const resultBox = document.getElementById('decoded-result');
+            resultBox.innerText = finalMessage;
+            resultBox.style.display = 'block';
+            
+            // Visual feedback if result looks like garbage (optional simple check)
+            if(finalMessage.length > 0 && password.length > 0) {
+                 resultBox.style.borderLeftColor = "#00ff88"; // Green success indicator
+            }
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(fileInput.files[0]);
 }
