@@ -1,160 +1,132 @@
-// Global Variables
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-
-// --- EVENT LISTENERS ---
-
-// 1. Preview Image on Upload
-document.getElementById('upload-encode').addEventListener('change', function(e) {
-    previewImage(e.target, 'preview-encode');
-});
-
-// 2. Trigger Encode Function
-document.getElementById('encode-btn').addEventListener('click', encodeMessage);
-
-// 3. Trigger Decode Function
-document.getElementById('decode-btn').addEventListener('click', decodeMessage);
-
-
-// --- HELPER FUNCTIONS ---
-
-function previewImage(input, imgId) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.getElementById(imgId);
-            img.src = e.target.result;
-            img.style.display = 'block';
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
+:root {
+    --primary: #00ff88;
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --text: #e2e8f0;
+    --border: #334155;
 }
 
-
-// --- MAIN ENCODING LOGIC (The "Bitwise" Part) ---
-
-function encodeMessage() {
-    const fileInput = document.getElementById('upload-encode');
-    const message = document.getElementById('secret-text').value;
-
-    if (!fileInput.files[0] || !message) {
-        alert("Please select an image and enter text.");
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            // Setup Canvas
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-
-            // Get Raw Pixel Data
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
-
-            // Prepare Message with Terminator '$'
-            const fullMessage = message + "$"; 
-            
-            // Convert to Binary String
-            let binaryMessage = "";
-            for (let i = 0; i < fullMessage.length; i++) {
-                let binaryChar = fullMessage[i].charCodeAt(0).toString(2).padStart(8, '0');
-                binaryMessage += binaryChar;
-            }
-
-            // Check Capacity
-            if (binaryMessage.length > data.length / 4) {
-                alert("Text is too long for this image size!");
-                return;
-            }
-
-            // EMBED BITS: Modify Least Significant Bit (LSB)
-            let dataIndex = 0;
-            for (let i = 0; i < binaryMessage.length; i++) {
-                let bit = binaryMessage[i]; 
-                
-                // Bitwise Logic: (val & 254) clears last bit, | bit sets it
-                data[dataIndex] = (data[dataIndex] & 254) | parseInt(bit);
-                
-                dataIndex++;
-                
-                // Skip Alpha Channel (Every 4th byte)
-                if ((dataIndex + 1) % 4 === 0) {
-                    dataIndex++;
-                }
-            }
-
-            // Write modified data back to canvas
-            ctx.putImageData(imgData, 0, 0);
-
-            // Trigger Download
-            const link = document.createElement('a');
-            link.download = 'hidden-pixel-image.png';
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(fileInput.files[0]);
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
 }
 
+h1 {
+    color: var(--primary);
+    margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+}
 
-// --- MAIN DECODING LOGIC ---
+.subtitle {
+    margin-bottom: 40px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
 
-function decodeMessage() {
-    const fileInput = document.getElementById('upload-decode');
-    
-    if (!fileInput.files[0]) {
-        alert("Please upload the encoded PNG image.");
-        return;
-    }
+.container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+    width: 100%;
+}
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
+.panel {
+    background-color: var(--panel);
+    padding: 30px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+}
 
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
+h2 { 
+    border-bottom: 2px solid var(--primary); 
+    padding-bottom: 10px; 
+    display: inline-block; 
+    margin-top: 0;
+}
 
-            let binaryMessage = "";
-            let decodedText = "";
+.form-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-weight: bold; }
 
-            // Extract Bits
-            for (let i = 0; i < data.length; i++) {
-                // Skip Alpha
-                if ((i + 1) % 4 === 0) continue;
+input[type="file"], textarea {
+    width: 100%;
+    padding: 10px;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
 
-                // Bitwise Logic: data[i] & 1 gets the last bit
-                binaryMessage += (data[i] & 1).toString();
-            }
+textarea { height: 100px; resize: vertical; }
 
-            // Convert Binary to Text
-            for (let i = 0; i < binaryMessage.length; i += 8) {
-                let byte = binaryMessage.slice(i, i + 8);
-                let charCode = parseInt(byte, 2);
-                let char = String.fromCharCode(charCode);
+button {
+    background-color: var(--primary);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.2s;
+}
 
-                if (char === "$") {
-                    break; // Stop at terminator
-                }
-                decodedText += char;
+button:hover { opacity: 0.9; transform: translateY(-2px); }
 
-                if (decodedText.length > 50000) break; // Safety break
-            }
+#preview-encode, #preview-decode {
+    max-width: 100%;
+    margin-top: 15px;
+    border-radius: 6px;
+    display: none;
+    border: 2px solid var(--border);
+}
 
-            // Show Result
-            const resultBox = document.getElementById('decoded-result');
-            resultBox.innerText = decodedText;
-            resultBox.style.display = 'block';
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(fileInput.files[0]);
+.result-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: #000;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary);
+    word-wrap: break-word;
+    display: none;
+    font-family: monospace;
+}
+
+.note {
+    font-size: 0.8rem; 
+    color: #aaa;
+    margin-top: 5px;
+}
+
+/* Hidden canvas */
+canvas { display: none; }
+
+/* Add this to your existing style.css */
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    color: var(--primary); /* Password dots appear green */
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: monospace;
+    letter-spacing: 2px;
+}
+
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 5px rgba(0, 255, 136, 0.2);
 }
