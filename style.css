@@ -1,132 +1,120 @@
 :root {
-    --primary: #00ff88;
-    --bg: #0f172a;
-    --panel: #1e293b;
-    --text: #e2e8f0;
-    --border: #334155;
+    --bg: #0b0f19;
+    --card: #151b2b;
+    --primary: #3b82f6; /* Blue SaaS color */
+    --accent: #10b981;  /* Success Green */
+    --text: #f3f4f6;
+    --border: #2d3748;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     background-color: var(--bg);
     color: var(--text);
     margin: 0;
-    padding: 20px;
+    padding-bottom: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
 }
 
-h1 {
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-family: 'Courier New', monospace;
-}
-
-.subtitle {
+nav {
+    width: 100%;
+    padding: 20px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
     margin-bottom: 40px;
-    color: #94a3b8;
-    font-size: 0.9rem;
 }
+
+.logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+.badge { background: var(--primary); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
 
 .container {
     display: flex;
-    gap: 20px;
+    gap: 30px;
     flex-wrap: wrap;
     justify-content: center;
-    max-width: 1200px;
     width: 100%;
+    max-width: 1000px;
 }
 
-.panel {
-    background-color: var(--panel);
-    padding: 30px;
+.card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    width: 400px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
+    padding: 25px;
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
-h2 { 
-    border-bottom: 2px solid var(--primary); 
-    padding-bottom: 10px; 
-    display: inline-block; 
-    margin-top: 0;
+.card-header h2 { margin: 0; font-size: 1.2rem; }
+.step-desc { color: #9ca3af; font-size: 0.85rem; }
+
+/* Drop Zones */
+.drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.2s;
+    background: #0f1522;
 }
+.drop-zone:hover { border-color: var(--primary); }
+.drop-zone p { margin: 0 0 10px 0; color: #9ca3af; font-size: 0.9rem; }
+.drop-zone.secondary { border-color: #2d3748; background: #111; }
 
-.form-group { margin-bottom: 20px; }
-label { display: block; margin-bottom: 8px; font-weight: bold; }
-
-input[type="file"], textarea {
-    width: 100%;
-    padding: 10px;
-    background: #0f172a;
+/* Buttons */
+.btn-outline {
+    background: transparent;
     border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-primary {
+    background: var(--primary);
     color: white;
-    border-radius: 6px;
-    box-sizing: border-box;
-}
-
-textarea { height: 100px; resize: vertical; }
-
-button {
-    background-color: var(--primary);
-    color: #000;
     border: none;
-    padding: 12px 24px;
+    padding: 12px;
     border-radius: 6px;
-    font-weight: bold;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.btn-primary:disabled { background: #1f2937; cursor: not-allowed; opacity: 0.5; }
+.btn-success {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
     cursor: pointer;
     width: 100%;
-    transition: 0.2s;
 }
 
-button:hover { opacity: 0.9; transform: translateY(-2px); }
-
-#preview-encode, #preview-decode {
-    max-width: 100%;
-    margin-top: 15px;
-    border-radius: 6px;
-    display: none;
-    border: 2px solid var(--border);
-}
-
-.result-box {
-    margin-top: 20px;
-    padding: 15px;
-    background: #000;
-    border-radius: 6px;
-    border-left: 4px solid var(--primary);
-    word-wrap: break-word;
-    display: none;
-    font-family: monospace;
-}
-
-.note {
-    font-size: 0.8rem; 
-    color: #aaa;
-    margin-top: 5px;
-}
-
-/* Hidden canvas */
-canvas { display: none; }
-
-/* Add this to your existing style.css */
-input[type="password"] {
+.input-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #9ca3af; }
+.input-group input {
     width: 100%;
     padding: 10px;
-    background: #0f172a;
+    background: #0f1522;
     border: 1px solid var(--border);
-    color: var(--primary); /* Password dots appear green */
     border-radius: 6px;
+    color: white;
     box-sizing: border-box;
-    font-family: monospace;
-    letter-spacing: 2px;
 }
 
-input[type="password"]:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 5px rgba(0, 255, 136, 0.2);
-}
+.preview-img { max-width: 100%; max-height: 150px; display: none; margin: 10px auto; border-radius: 4px; }
+.separator { text-align: center; font-size: 0.8rem; color: #4b5563; font-weight: bold; }
+.info-tag { font-size: 0.8rem; color: var(--accent); text-align: center; }
+
+#capacity-bar { height: 4px; background: #374151; border-radius: 2px; overflow: hidden; margin-top: 5px; }
+#capacity-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
+#capacity-text { font-size: 0.7rem; color: #6b7280; text-align: right; }
+
+.result-box { display: none; background: #064e3b; padding: 15px; border-radius: 6px; border: 1px solid #059669; }
+canvas { display: none; }
